@@ -1,4 +1,4 @@
-## Proyect Overview
+## Project Overview
 
 El challenge fue desarrollado pensándolo de la siguiente manera y con las siguientes herramientas:
 - Extraer datos (datos RAW o en bruto): valiéndome de la biblioteca *requests*

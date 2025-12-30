@@ -16,7 +16,7 @@ Proyecto para un challenge de datos
 
 - Al abrir el archivo **dashboard.pbix**, hacer clic en *Transform data* de la cinta principal de opciones
 - En la sección derecha, en *Applied Steps* seleccionar *Source*
-- Modificar la ruta allí asignada por la utilizada en su sistema para el archivo .pbix
+- Modificar la ruta allí asignada por la utilizada en su sistema para el archivo *rows.parquet* (ya generado al correr main.py)
 
 ```= Parquet.Document(File.Contents("C:\CARPETA_DESCARGADA\challenge-data-ev\data\processed\rows.parquet"), [Compression=null, LegacyColumnNameEncoding=false, MaxDepth=null])```
 
