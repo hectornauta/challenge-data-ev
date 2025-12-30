@@ -13,10 +13,7 @@ def read_ev_csv(file_key: str)->pd.DataFrame:
 
 def clean_dataframe(dataframe: pd.DataFrame)->pd.DataFrame:
     print('Limpiando dataframe')
-    dataframe['Electric Range'] = dataframe['Electric Range'].astype(float)
-    dataframe = dataframe.rename(columns={
-        'VIN (1-10)': 'VIN'
-    })
+    dataframe['electric_range'] = dataframe['electric_range'].astype(float)
     # cols_with_empty_strings = dataframe.columns[dataframe.eq('').any()]
     # print("Columnas con strings vacíos")
     # print(cols_with_empty_strings)
@@ -25,20 +22,39 @@ def clean_dataframe(dataframe: pd.DataFrame)->pd.DataFrame:
     print("Columnas con nulos")
     print(cols_with_nulls)
     # print(F"Antes de borrar nulos: {len(dataframe)=}")
-    dataframe = dataframe.dropna()
+    """
+    De momento pasamos por alto los nulos de
+        - 2020 Census Tract porque parece ser algo de un censo
+        - Electric Utility porque es algo de una compañía eléctrica
+        - Legistlative District porque es algo exclusivo de WA
+    """
+    dataframe = dataframe.dropna(subset=['vehicle_location'])
     # print(F"Luego de borrar nulos: {len(dataframe)=}")
+    return dataframe
+
+
+def normalize_names(dataframe: pd.DataFrame) -> pd.DataFrame:
+    dataframe.columns = dataframe.columns.str.strip()
+    dataframe.columns = dataframe.columns.str.lower().str.replace(" ", "_")
+    dataframe.columns = dataframe.columns.str.replace(r'[^a-z0-9_]+', '', regex=True)
+    dataframe.columns = dataframe.columns.str.strip('_')
+    dataframe = dataframe.rename(columns={
+        'vin_110': 'vin',
+        'clean_alternative_fuel_vehicle_cafv_eligibility': 'cafv_eligibility'
+    })
     return dataframe
 
 
 def transform_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
     # Ajustamos los datos geográficos
-    dataframe['Location'] = dataframe['Vehicle Location'].str.replace('POINT (', '').str.replace(')', '').str.split(' ')
-    dataframe['Longitude'] = dataframe['Location'].str[0].astype(float)
-    dataframe['Latitude'] = dataframe['Location'].str[1].astype(float)
-    dataframe['Latitude'] = dataframe['Location'].str[1].astype(float)
+    dataframe['location'] = dataframe['vehicle_location'].str.replace('POINT (', '').str.replace(')', '').str.split(' ')
+    dataframe['longitude'] = dataframe['location'].str[0].astype(float)
+    dataframe['latitude'] = dataframe['location'].str[1].astype(float)
+    dataframe['latitude'] = dataframe['location'].str[1].astype(float)
     # Ajustamos esto para tener como formato fecha
-    dataframe['Date Model'] = pd.to_datetime(dataframe['Model Year'].astype(str) + '-01-01')
-    dataframe = dataframe.drop(columns=['Location'])
+    dataframe['date_model'] = pd.to_datetime(dataframe['model_year'].astype(str) + '-01-01')
+    dataframe = dataframe.drop(columns=['location'])
+    print(f"Nuevos nombres de columnas {dataframe.columns=}")
     return dataframe
 
 
@@ -60,6 +76,7 @@ if __name__ == "__main__":
     prepare_folders(processed_folder)
 
     dataframe_ev = read_ev_csv(raw_file_key)
+    dataframe_ev = normalize_names(dataframe_ev)
     dataframe_ev = clean_dataframe(dataframe_ev)
     dataframe_ev = transform_dataframe(dataframe_ev)
     save_dataframe_ev(dataframe_ev, processed_file_key)
