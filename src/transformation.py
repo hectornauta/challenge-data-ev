@@ -1,8 +1,16 @@
 import pandas as pd
-from utils import prepare_folders
+from src.utils import prepare_folders
 
 
 def read_ev_csv(file_key: str)->pd.DataFrame:
+    """
+    Lee el archivo csv de la ruta especificada y devuelve un dataframe
+    
+    :param file_key: ruta completa del archivo
+    :type file_key: str
+    :return: dataframe leído
+    :rtype: DataFrame
+    """
     print('Leyendo csv')
     dataframe = pd.read_csv(
         file_key,
@@ -11,7 +19,15 @@ def read_ev_csv(file_key: str)->pd.DataFrame:
     return dataframe
 
 
-def clean_dataframe(dataframe: pd.DataFrame)->pd.DataFrame:
+def clean_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
+    """
+    Recibe un dataframe y lo devuelve limpio
+    
+    :param file_key: dataframe a limpiar
+    :type file_key: str
+    :return: dataframe limpio
+    :rtype: DataFrame
+    """
     print('Limpiando dataframe')
     dataframe['electric_range'] = dataframe['electric_range'].astype(float)
     # cols_with_empty_strings = dataframe.columns[dataframe.eq('').any()]
@@ -19,7 +35,7 @@ def clean_dataframe(dataframe: pd.DataFrame)->pd.DataFrame:
     # print(cols_with_empty_strings)
     # Limpiamos los nulos
     cols_with_nulls = dataframe.columns[dataframe.isnull().any()]
-    print("Columnas con nulos")
+    print("Columnas con nulos, revisar")
     print(cols_with_nulls)
     # print(F"Antes de borrar nulos: {len(dataframe)=}")
     """
@@ -34,6 +50,14 @@ def clean_dataframe(dataframe: pd.DataFrame)->pd.DataFrame:
 
 
 def normalize_names(dataframe: pd.DataFrame) -> pd.DataFrame:
+    """
+    Normaliza los nombres de columna de un dataframe
+    
+    :param dataframe: dataframe a normalizar
+    :type dataframe: pd.DataFrame
+    :return: dataframe normalizado
+    :rtype: DataFrame
+    """
     dataframe.columns = dataframe.columns.str.strip()
     dataframe.columns = dataframe.columns.str.lower().str.replace(" ", "_")
     dataframe.columns = dataframe.columns.str.replace(r'[^a-z0-9_]+', '', regex=True)
@@ -46,6 +70,14 @@ def normalize_names(dataframe: pd.DataFrame) -> pd.DataFrame:
 
 
 def transform_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
+    """
+    Recibe un dataframe y le aplica transformaciones varias
+    
+    :param dataframe: dataframe sin transformar
+    :type dataframe: pd.DataFrame
+    :return: dataframe transformado
+    :rtype: DataFrame
+    """
     # Ajustamos los datos geográficos
     dataframe['location'] = dataframe['vehicle_location'].str.replace('POINT (', '').str.replace(')', '').str.split(' ')
     dataframe['longitude'] = dataframe['location'].str[0].astype(float)
@@ -54,19 +86,27 @@ def transform_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
     # Ajustamos esto para tener como formato fecha
     dataframe['date_model'] = pd.to_datetime(dataframe['model_year'].astype(str) + '-01-01')
     dataframe = dataframe.drop(columns=['location'])
-    print(f"Nuevos nombres de columnas {dataframe.columns=}")
+    print(f"Nuevos nombres de columnas {list(dataframe.columns)}")
     return dataframe
 
 
 def save_dataframe_ev(dataframe: pd.DataFrame, file_key: str):
+    """
+    Guarda el dataframe en formato parquet a la ubicación indicada
+    
+    :param dataframe: dataframe a guardar
+    :type dataframe: pd.DataFrame
+    :param file_key: ruta completa del archivo donde se guardará
+    :type file_key: str
+    """
     # Guardamos como datos limpios
     dataframe.to_parquet(
-        processed_file_key,
+        file_key,
         index=False
     )
 
 
-if __name__ == "__main__":
+def run_task():
     raw_folder = 'data/raw/'
     raw_file = 'rows.csv'
     raw_file_key = f"{raw_folder}{raw_file}"
@@ -80,4 +120,8 @@ if __name__ == "__main__":
     dataframe_ev = clean_dataframe(dataframe_ev)
     dataframe_ev = transform_dataframe(dataframe_ev)
     save_dataframe_ev(dataframe_ev, processed_file_key)
-    print(f"{dataframe_ev=}")
+    # print(f"{dataframe_ev=}")
+
+
+if __name__ == "__main__":
+    run_task()
