@@ -17,10 +17,20 @@ def clean_dataframe(dataframe: pd.DataFrame)->pd.DataFrame:
     dataframe = dataframe.rename(columns={
         'VIN (1-10)': 'VIN'
     })
+    # cols_with_empty_strings = dataframe.columns[dataframe.eq('').any()]
+    # print("Columnas con strings vacíos")
+    # print(cols_with_empty_strings)
+    # Limpiamos los nulos
+    cols_with_nulls = dataframe.columns[dataframe.isnull().any()]
+    print("Columnas con nulos")
+    print(cols_with_nulls)
+    # print(F"Antes de borrar nulos: {len(dataframe)=}")
+    dataframe = dataframe.dropna()
+    # print(F"Luego de borrar nulos: {len(dataframe)=}")
     return dataframe
 
 
-def transform_dataframe(dataframe: pd.DataFrame)->pd.DataFrame:
+def transform_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
     # Ajustamos los datos geográficos
     dataframe['Location'] = dataframe['Vehicle Location'].str.replace('POINT (', '').str.replace(')', '').str.split(' ')
     dataframe['Longitude'] = dataframe['Location'].str[0].astype(float)
